@@ -1,0 +1,8 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: "Include acme.nfs_server"
+      ansible.builtin.include_role:
+        name: "acme.nfs_server"
