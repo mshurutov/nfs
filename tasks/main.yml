@@ -1,2 +1,56 @@
 ---
+
 # tasks file for nfs_server
+- name: install packages
+  ansible.builtin.package:
+    name: "{{ nfs_packages }}"
+    state: present
+  tags: nfs_install
+
+- name: create server config
+  ansible.builtin.lineinfile:
+    path: "{{ item.0.path }}"
+    regexp: "{{ item.1.regexp }}"
+    line: "{{ item.1.line }}"
+    state: "{{ item.1.state | default('present') }}"
+  loop: "{{ nfs_server_config | subelements('sets',skip_missing=True) }}"
+  when: nfs_server_config is defined and nfs_server_config | length > 0
+  notify: start nfs server
+  tags: nfs_server_config
+
+- name: copy nfs.conf to server
+  ansible.builtin.template:
+    src: "{{ nfs_templates_dir }}/nfs.conf.j2"
+    dest: "/etc/nfs.conf"
+  when: nfs_nfs_conf is defined
+  notify: restart nfs server
+  tags: nfs_server_config
+
+- name: create client config
+  ansible.builtin.lineinfile:
+    path: "{{ item.0.path }}"
+    regexp: "{{ item.1.regexp }}"
+    line: "{{ item.1.line }}"
+    state: "{{ item.1.state | default('present') }}"
+  loop: "{{ nfs_client_config | subelements('sets',skip_missing=True) }}"
+  when: nfs_client_config is defined and nfs_client_config | length > 0
+  tags: nfs_client_config
+
+- name: add shares into /etc/exports
+  ansible.builtin.template:
+    src: "{{ nfs_templates_dir }}/exports.j2"
+    dest: "/etc/exports"
+  when: nfs_server_exports is defined and nfs_server_exports | length > 0
+  notify: reload nfs server
+  tags: nfs_server_config
+
+- name: add nfs mount points into /etc/fstab
+  ansible.builtin.lineinfile:
+    path: '/etc/fstab'
+    regexp: '^#?\s*{{ item.src }}'
+    line: "{{ item.src }}\t{{ item.mntpnt }}\tnfs\t{{ item.options }}\t0 0"
+    state: present
+  loop: "{{ nfs_fstab_records }}"
+  when: nfs_fstab_records is defined and nfs_fstab_records | length > 0
+  tags: nfs_client_config
+

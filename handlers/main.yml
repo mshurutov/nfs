@@ -1,2 +1,17 @@
 ---
 # handlers file for nfs_server
+- name: start nfs server
+  ansible.builtin.service:
+    name: "{{ nfs_server_service }}"
+    state: started
+
+- name: restart nfs server
+  ansible.builtin.service:
+    name: "{{ nfs_server_service }}"
+    state: restarted
+
+- name: reload nfs server
+  ansible.builtin.service:
+    name: "{{ nfs_server_service }}"
+    state: reloaded
+

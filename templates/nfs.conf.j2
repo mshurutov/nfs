@@ -1,0 +1,9 @@
+# File /etc/nfs.conf is managed by ansible
+# You shouldn't edit it manually
+
+{% for key,settings in nfs_nfs_conf.items() %}
+[key]
+{% for name,value in settings.items() %}
+{{ name | regex_replace("_","-") }} = {{ value }}
+{% endfor %}
+{% endfor %}

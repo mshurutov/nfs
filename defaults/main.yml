@@ -1,2 +1,26 @@
 ---
+
 # defaults file for nfs_server
+nfs_templates_dir: "{{ role_path }}/templates"
+nfs_vars_dir: "{{ role_path }}/vars"
+nfs_server_service: "nfs-server.service"
+nfs_server_config: []
+#  - path: "/etc/conf.d/nfs"
+#    sets:
+#    - regexp: '^#?\s*NFS_NEEDED_SERVICES'
+#      line: 'NFS_NEEDED_SERVICES="rpc.idmapd rpc.svcgssd"'
+#  - path: "/etc/idmapd.conf"
+#    sets:
+#    - regexp: '^#?\s*Domain'
+#      line: 'Domain = {{ common_domian_name }}'
+#    - regexp: '^#?\s*Local-Realms'
+#      line: 'Local-Realms = {{ krb_default_realm }}'
+nfs_client_config: []
+#  - path: "/etc/conf.d/nfsclient"
+#    sets:
+#    - regexp: '^#?\s*rc_need'
+#      line: 'rc_need="!rpc.statd rpc.gssd"'
+nfs_packages: "nfs-utils"
+nfs_server_auth: "standalone"
+nfs_server_exports: []
+nfs_fstab_records: []

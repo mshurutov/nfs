@@ -1,0 +1,11 @@
+# file /etc/exports is managed by ansible
+# You shouldn't edit it manually
+
+{# one record contain follow structure
+  - path: "/opt/export"
+    ip_addresses: "192.168.0.0/16"
+    options: "ro,no_root_squash,nohide,sync,no_subtree_check,sec=krb5,crossmnt,fsid=0"
+#}
+{% for record in nfs_server_exports %}
+{{ record.path }}	{{ record.ip_addresses }}({{ record.options }})
+{% endfor %}
