@@ -1,7 +1,10 @@
+[TOC}]
+
 Role Name
 =========
 
 A brief description of the role goes here.
+
 Copyright (C) 2023  Mikhail Shurutov
 
 This program is free software; you can redistribute it and/or

@@ -53,4 +53,3 @@
   loop: "{{ nfs_fstab_records }}"
   when: nfs_fstab_records is defined and nfs_fstab_records | length > 0
   tags: nfs_client_config
-
