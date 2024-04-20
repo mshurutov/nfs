@@ -44,12 +44,28 @@
   notify: reload nfs server
   tags: nfs_server_config
 
-- name: add nfs mount points into /etc/fstab
-  ansible.builtin.lineinfile:
-    path: '/etc/fstab'
-    regexp: '^#?\s*{{ item.src }}'
-    line: "{{ item.src }}\t{{ item.mntpnt }}\tnfs\t{{ item.options }}\t0 0"
-    state: present
-  loop: "{{ nfs_fstab_records }}"
+- name: setup client
+  block:
+  - name: check if /etc/systemd/system/rpc-gssd.service.d exists
+    ansible.builtin.file:
+      path: "/etc/systemd/system/rpc-gssd.service.d"
+      state: "directory"
+  - name: add systemd-resolved as dependency for rpc-gssd
+    ansible.builtin.blockinfile:
+      path: "/etc/systemd/system/rpc-gssd.service.d/override.conf"
+      create: true
+      block: |
+        [Unit]
+        Requires=network-online.target
+        After=network-online.target nss-lookup.target
+    notify: reload systemd daemon
+  - name: add nfs mount points into /etc/fstab
+    ansible.builtin.lineinfile:
+      path: '/etc/fstab'
+      regexp: '^#?\s*{{ item.src }}'
+      line: "{{ item.src }}\t{{ item.mntpnt }}\tnfs\t{{ item.options }}\t0 0"
+      state: present
+    loop: "{{ nfs_fstab_records }}"
+    notify: reload systemd daemon
   when: nfs_fstab_records is defined and nfs_fstab_records | length > 0
-  tags: nfs_client_config
+  tags: nfs_client_config,nfs_client_fstab

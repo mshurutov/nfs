@@ -15,3 +15,17 @@
   ansible.builtin.service:
     name: "{{ nfs_server_service }}"
     state: reloaded
+
+- name: reload systemd daemon
+  ansible.builtin.systemd_service:
+    daemon_reload: true
+
+- name: enable nfs-client
+  ansible.builtin.systemd_service:
+    name: nfs-client.target
+    enabled: true
+
+- name: start nfs-client
+  ansible.builtin.systemd_service:
+    name: nfs-client.target
+    state: started
