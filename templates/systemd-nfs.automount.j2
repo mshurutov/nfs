@@ -1,0 +1,22 @@
+# Systemd.automount file
+{% if nfsmp.unit is defined %}
+[Unit]
+{% for ukey,uvalue in nfsmp.unit.items() -%} 
+{{ ukey }}={{ uvalue }}
+{% endfor %}
+{% endif %}
+{% if nfsmp.install is defined %}
+
+[Install]
+{% for ikey,ivalue in nfsmp.install.items() -%} 
+{{ ikey }}={{ ivalue }}
+{% endfor %}
+{% endif %}
+
+[Mount]
+Where={{ nfsmp.dest }}
+{% if nfsmp.automountparams is defined %}
+{% for epkey,epvalue in nfsmp.autoparams %}
+{{ epkey }}={{ epvalue }}
+{% endfor %}
+{% endif %}

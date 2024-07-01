@@ -59,13 +59,36 @@
         Requires=network-online.target
         After=network-online.target nss-lookup.target
     notify: reload systemd daemon
-  - name: add nfs mount points into /etc/fstab
-    ansible.builtin.lineinfile:
-      path: '/etc/fstab'
-      regexp: '^#?\s*{{ item.src }}'
-      line: "{{ item.src }}\t{{ item.mntpnt }}\tnfs\t{{ item.options }}\t0 0"
-      state: present
+  - name: ummount nfs mount points
+    ansible.posix.mount:
+      path: "{{ item.mntpnt }}"
+      state: "unmounted"
+    loop: "{{ nfs_fstab_records }}"
+  - name: remove nfs mount points from /etc/fstab
+    ansible.posix.mount:
+      path: "{{ item.mntpnt }}"
+      state: "absent_from_fstab"
     loop: "{{ nfs_fstab_records }}"
     notify: reload systemd daemon
   when: nfs_fstab_records is defined and nfs_fstab_records | length > 0
-  tags: nfs_client_config,nfs_client_fstab
+
+- name: setup NFS mount points as systemd units
+  block:
+  - name: copy mount point files into /etc/systemd/systemd dir
+    ansible.builtin.template:
+      src: "{{ nfs_templates_dir }}/systemd-nfs.mount.j2"
+      dest: "{{ nfs_systemd_units_dir }}/{{ nfsmp.dest | systemd_escape(path=True, suffix='mount') }}"
+    loop: "{{ nfs_systemd_mounts }}"
+    loop_control:
+      loop_var: nfsmp
+    notify: reload systemd daemon
+  - name: copy automount files into /etc/systemd/systemd dir
+    ansible.builtin.template:
+      src: "{{ nfs_templates_dir }}/systemd-nfs.automount.j2"
+      dest: "{{ nfs_systemd_units_dir }}/{{ nfsmp.dest | systemd_escape(path=True, suffix='automount') }}"
+    loop: "{{ nfs_systemd_mounts }}"
+    loop_control:
+      loop_var: nfsmp
+    notify: reload systemd daemon
+  tags: nfs_client_config,nfs_client_systemd
+  when: nfs_systemd_mounts is defined and nfs_systemd_mounts | length > 0

@@ -1,0 +1,31 @@
+# Systemd.mount file
+{% if nfsmp.unit is defined %}
+[Unit]
+{% if not nfsmp.automount -%}
+{% for ukey,uvalue in nfsmp.unit -%} 
+{{ ukey }}={{ uvalue }}
+{% endfor %}
+{% else %}
+Description={{ nfsmp.unit.Description }}
+{% endif %}
+{% endif %}
+{% if nfsmp.install is defined %}
+{% if not nfsmp.automount %}
+
+[Install]
+{% for ikey,ivalue in nfsmp.install %} 
+{{ ikey }}={{ ivalue }}
+{% endfor %}
+{% endif %}
+{% endif %}
+
+[Mount]
+What={{ nfsmp.src }}
+Where={{ nfsmp.dest }}
+Type=nfs
+Options={{ nfsmp.options | default('_netdev') }}
+{% if nfsmp.mountparams is defined %}
+{% for epkey,epvalue in nfsmp.mountparams %}
+{{ epkey }}={{ epvalue }}
+{% endfor %}
+{% endif %}

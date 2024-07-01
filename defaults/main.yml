@@ -3,6 +3,7 @@
 # defaults file for nfs_server
 nfs_templates_dir: "{{ role_path }}/templates"
 nfs_vars_dir: "{{ role_path }}/vars"
+nfs_systemd_units_dir: "/etc/systemd/system"
 nfs_server_service: "nfs-server.service"
 nfs_server_config: []
 #  - path: "/etc/conf.d/nfs"
@@ -24,3 +25,4 @@ nfs_packages: "nfs-utils"
 nfs_server_auth: "standalone"
 nfs_server_exports: []
 nfs_fstab_records: []
+nfs_systemd_mounts: []
