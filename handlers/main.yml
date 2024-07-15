@@ -29,3 +29,39 @@
   ansible.builtin.systemd_service:
     name: nfs-client.target
     state: started
+
+- name: enable automount
+  ansible.builtin.systemd_service:
+    name: "{{ {{ nfsmp.dest | systemd_escape(path=True, suffix='automount') }}"
+    enabled: true
+  when: nfsmp.automount is defined and nfsmp.automount | bool
+  loop: "{{ nfs_systemd_mounts }}"
+  loop_control:
+    loop_var: nfsmp
+
+- name: start automount
+  ansible.builtin.systemd_service:
+    name: "{{ {{ nfsmp.dest | systemd_escape(path=True, suffix='automount') }}"
+    state: started
+  when: nfsmp.automount is defined and nfsmp.automount | bool
+  loop: "{{ nfs_systemd_mounts }}"
+  loop_control:
+    loop_var: nfsmp
+
+- name: enable not automount
+  ansible.builtin.systemd_service:
+    name: "{{ {{ nfsmp.dest | systemd_escape(path=True, suffix='mount') }}"
+    enabled: true
+  when: not ( nfsmp.automount is defined and nfsmp.automount | bool ) and ( nfsmp.bootmount is defined and nfsmp.bootmount | bool )
+  loop: "{{ nfs_systemd_mounts }}"
+  loop_control:
+    loop_var: nfsmp
+
+- name: start not automount
+  ansible.builtin.systemd_service:
+    name: "{{ {{ nfsmp.dest | systemd_escape(path=True, suffix='mount') }}"
+    state: started
+  when: not ( nfsmp.automount is defined and nfsmp.automount | bool ) and ( nfsmp.bootmount is defined and nfsmp.bootmount | bool )
+  loop: "{{ nfs_systemd_mounts }}"
+  loop_control:
+    loop_var: nfsmp

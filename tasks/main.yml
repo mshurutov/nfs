@@ -86,9 +86,15 @@
     ansible.builtin.template:
       src: "{{ nfs_templates_dir }}/systemd-nfs.automount.j2"
       dest: "{{ nfs_systemd_units_dir }}/{{ nfsmp.dest | systemd_escape(path=True, suffix='automount') }}"
+    when: nfsmp.automount is defined and nfsmp.automount | bool
     loop: "{{ nfs_systemd_mounts }}"
     loop_control:
       loop_var: nfsmp
-    notify: reload systemd daemon
+    notify:
+    - reload systemd daemon
+    - enable automount
+    - start automount
+    - enable not automount
+    - start not automount
   tags: nfs_client_config,nfs_client_systemd
   when: nfs_systemd_mounts is defined and nfs_systemd_mounts | length > 0
