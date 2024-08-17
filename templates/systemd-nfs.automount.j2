@@ -13,7 +13,7 @@
 {% endfor %}
 {% endif %}
 
-[Mount]
+[Automount]
 Where={{ nfsmp.dest }}
 {% if nfsmp.automountparams is defined %}
 {% for epkey,epvalue in nfsmp.autoparams %}
