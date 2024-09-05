@@ -1,13 +1,22 @@
 ---
+- name: Check if ansible version is equal or greater than 2.11
+  ansible.builtin.fail:
+    msg: "Ansible core should be equal or greater than 2.11"
+  when: ansible_version.full is ansible.builtin.version('2.11','<')
+
+- name: Check if python is equal or greater than 3
+  ansible.builtin.fail:
+    msg: "Python should be equal or greater than 3"
+  when: ansible_python.version.major is ansible.builtin.version('3','<')
 
 # tasks file for nfs_server
-- name: install packages
+- name: Install packages
   ansible.builtin.package:
     name: "{{ nfs_packages }}"
     state: present
   tags: nfs_install
 
-- name: create server config
+- name: Create server config
   ansible.builtin.lineinfile:
     path: "{{ item.0.path }}"
     regexp: "{{ item.1.regexp }}"
@@ -18,7 +27,7 @@
   notify: start nfs server
   tags: nfs_server_config
 
-- name: copy nfs.conf to server
+- name: Copy nfs.conf to server
   ansible.builtin.template:
     src: "{{ nfs_templates_dir }}/nfs.conf.j2"
     dest: "/etc/nfs.conf"
@@ -26,7 +35,7 @@
   notify: restart nfs server
   tags: nfs_server_config
 
-- name: create client config
+- name: Create client config
   ansible.builtin.lineinfile:
     path: "{{ item.0.path }}"
     regexp: "{{ item.1.regexp }}"
@@ -36,7 +45,7 @@
   when: nfs_client_config is defined and nfs_client_config | length > 0
   tags: nfs_client_config
 
-- name: add shares into /etc/exports
+- name: Add shares into /etc/exports
   ansible.builtin.template:
     src: "{{ nfs_templates_dir }}/exports.j2"
     dest: "/etc/exports"
@@ -44,13 +53,13 @@
   notify: reload nfs server
   tags: nfs_server_config
 
-- name: setup client
+- name: Setup client
   block:
-  - name: check if /etc/systemd/system/rpc-gssd.service.d exists
+  - name: Check if /etc/systemd/system/rpc-gssd.service.d exists
     ansible.builtin.file:
       path: "/etc/systemd/system/rpc-gssd.service.d"
       state: "directory"
-  - name: add systemd-resolved as dependency for rpc-gssd
+  - name: Add systemd-resolved as dependency for rpc-gssd
     ansible.builtin.blockinfile:
       path: "/etc/systemd/system/rpc-gssd.service.d/override.conf"
       create: true
@@ -59,12 +68,12 @@
         Requires=network-online.target
         After=network-online.target nss-lookup.target
     notify: reload systemd daemon
-  - name: ummount nfs mount points
+  - name: Ummount nfs mount points
     ansible.posix.mount:
       path: "{{ item.mntpnt }}"
       state: "unmounted"
     loop: "{{ nfs_fstab_records }}"
-  - name: remove nfs mount points from /etc/fstab
+  - name: Remove nfs mount points from /etc/fstab
     ansible.posix.mount:
       path: "{{ item.mntpnt }}"
       state: "absent_from_fstab"
@@ -72,9 +81,9 @@
     notify: reload systemd daemon
   when: nfs_fstab_records is defined and nfs_fstab_records | length > 0
 
-- name: setup NFS mount points as systemd units
+- name: Setup NFS mount points as systemd units
   block:
-  - name: copy mount point files into /etc/systemd/systemd dir
+  - name: Copy mount point files into /etc/systemd/systemd dir
     ansible.builtin.template:
       src: "{{ nfs_templates_dir }}/systemd-nfs.mount.j2"
       dest: "{{ nfs_systemd_units_dir }}/{{ nfsmp.dest | systemd_escape(path=True, suffix='mount') }}"
@@ -82,7 +91,7 @@
     loop_control:
       loop_var: nfsmp
     notify: reload systemd daemon
-  - name: copy automount files into /etc/systemd/systemd dir
+  - name: Copy automount files into /etc/systemd/systemd dir
     ansible.builtin.template:
       src: "{{ nfs_templates_dir }}/systemd-nfs.automount.j2"
       dest: "{{ nfs_systemd_units_dir }}/{{ nfsmp.dest | systemd_escape(path=True, suffix='automount') }}"
