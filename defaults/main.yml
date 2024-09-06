@@ -1,5 +1,4 @@
 ---
-
 # defaults file for nfs_server
 nfs_templates_dir: "{{ role_path }}/templates"
 nfs_vars_dir: "{{ role_path }}/vars"
